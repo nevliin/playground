@@ -1,0 +1,14 @@
+{
+  "name": "playground-client",
+  "version": "1.0.0",
+  "description": "Client-App of my playground",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@angular/cli": "^6.2.3"
+  }
+}
