@@ -5,8 +5,8 @@ import * as logger from "morgan";
 import * as path from "path";
 import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
+import {Routes} from "./routes/routes";
 
-import { IndexRoute } from "./routes/index";
 
 /**
  * The server.
@@ -16,6 +16,7 @@ import { IndexRoute } from "./routes/index";
 export class Server {
 
     public app: express.Application;
+    public router: Routes;
 
     /**
      * Bootstrap the application.
@@ -42,7 +43,7 @@ export class Server {
         //configure application
         this.config();
 
-        //add routes
+        //add routing
         this.routes();
 
         //add api
@@ -50,7 +51,7 @@ export class Server {
     }
 
     /**
-     * Create REST API routes
+     * Create REST API routing
      *
      * @class Server
      * @method api
@@ -72,6 +73,7 @@ export class Server {
         //configure pug
         this.app.set("views", path.join(__dirname, "views"));
         this.app.set("view engine", "pug");
+
 
         //use logger middlware
         this.app.use(logger("dev"));
@@ -110,8 +112,8 @@ export class Server {
         let router: express.Router;
         router = express.Router();
 
-        //IndexRoute
-        IndexRoute.create(router);
+        this.router = new Routes();
+        this.router.create(router);
 
         //use router middleware
         this.app.use(router);
