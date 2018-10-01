@@ -6,6 +6,8 @@ import * as path from "path";
 import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import {Routes} from "./routes/routes";
+import {Dependencies} from "./core/dependencies";
+import {Logger, LoggingUtil} from "./utils/logging/logging.util";
 
 
 /**
@@ -17,6 +19,7 @@ export class Server {
 
     public app: express.Application;
     public router: Routes;
+    public logger: Logger = Dependencies.get<LoggingUtil>('logging').getLogger('Server');
 
     /**
      * Bootstrap the application.
@@ -48,6 +51,8 @@ export class Server {
 
         //add api
         this.api();
+
+        this.logger.info('Server was constructed');
     }
 
     /**
