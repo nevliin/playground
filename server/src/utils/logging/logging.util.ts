@@ -1,4 +1,20 @@
-export class LoggingUtil {
+import {Dependable} from "../../core/init-dependency-interface";
+import {injectable} from "../../core/dependencies";
+
+@injectable('logging')
+export class LoggingUtil implements Dependable {
+
+    initDependency(): void {
+        console.log('I was initialized!');
+    }
+
+    getLogger(module: string): Logger {
+        return new Logger(module);
+    }
+
+}
+
+export class Logger {
 
     module: string;
 
