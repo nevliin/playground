@@ -12,11 +12,10 @@ class IndexRoute extends route_1.BaseRoute {
         super();
     }
     index(req, res, next) {
-        this.title = "Home | Tour of Heros";
-        let options = {
-            "message": "Welcome to the Tour of Heros"
-        };
-        this.render(req, res, "index", options);
+        res.json({
+            message: 'Index',
+            body: 'Index page'
+        });
     }
 }
 exports.IndexRoute = IndexRoute;

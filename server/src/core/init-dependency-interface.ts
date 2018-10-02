@@ -1,4 +1,4 @@
-export interface Dependable<T> {
+export interface Dependable {
 
     initDependency(): void;
 

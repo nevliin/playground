@@ -7,16 +7,19 @@ const logger = require("morgan");
 const path = require("path");
 const errorHandler = require("errorhandler");
 const methodOverride = require("method-override");
-const index_1 = require("./routes/index");
+const routes_1 = require("./routes/routes");
+const dependencies_1 = require("./core/dependencies");
 class Server {
-    static bootstrap() {
-        return new Server();
-    }
     constructor() {
+        this.logger = dependencies_1.Dependencies.get('logging').getLogger('Server');
         this.app = express();
         this.config();
         this.routes();
         this.api();
+        this.logger.info('Server was constructed');
+    }
+    static bootstrap() {
+        return new Server();
     }
     api() {
     }
@@ -40,7 +43,8 @@ class Server {
     routes() {
         let router;
         router = express.Router();
-        index_1.IndexRoute.create(router);
+        this.router = new routes_1.Routes();
+        this.router.create(router);
         this.app.use(router);
     }
 }

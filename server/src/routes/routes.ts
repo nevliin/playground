@@ -1,10 +1,11 @@
 import {NextFunction, Request, Response, Router} from "express";
-import {LoggingUtil} from "../utils/logging/logging.util";
+import {Logger, LoggingUtil} from "../utils/logging/logging.util";
 import {TestService} from "../services/test.service";
+import {Dependencies} from "../core/dependencies";
 
 export class Routes {
 
-    logger: LoggingUtil = new LoggingUtil('Routes');
+    logger: Logger = Dependencies.get<LoggingUtil>('logging').getLogger('Routes');
 
     constructor() { }
 
