@@ -4,17 +4,15 @@ import {TestService} from "../services/test.service";
 
 export class Routes {
 
-    logger: LoggingUtil = new LoggingUtil('Routes');
-
     constructor() { }
 
     public create(router: Router) {
 
-        this.logger.info('Creating routes', 'create');
+        const t: TestService = new TestService();
 
         //add home page route
-        router.get("/", (req: Request, res: Response, next: NextFunction) => {
-            res.json(TestService.getTest());
+        router.get("/index", (req: Request, res: Response, next: NextFunction) => {
+            res.json(t.getTest());
         });
     }
 }

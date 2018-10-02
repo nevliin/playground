@@ -6,8 +6,8 @@ import * as path from "path";
 import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import {Routes} from "./routes/routes";
-import {Dependencies} from "./core/dependencies";
 import {Logger, LoggingUtil} from "./utils/logging/logging.util";
+import {DBConnection} from "./utils/dbconnection/dbconnection";
 
 
 /**
@@ -19,7 +19,9 @@ export class Server {
 
     public app: express.Application;
     public router: Routes;
-    public logger: Logger = Dependencies.get<LoggingUtil>('logging').getLogger('Server');
+
+    private loggingUtil: LoggingUtil;
+    private dbconnection: DBConnection;
 
     /**
      * Bootstrap the application.
@@ -43,26 +45,19 @@ export class Server {
         //create expressjs application
         this.app = express();
 
+        //set up singletons
+        this.singletons();
+
         //configure application
         this.config();
 
         //add routing
         this.routes();
-
-        //add api
-        this.api();
-
-        this.logger.info('Server was constructed');
     }
 
-    /**
-     * Create REST API routing
-     *
-     * @class Server
-     * @method api
-     */
-    public api() {
-        //empty for now
+    public singletons()  {
+        this.loggingUtil = new LoggingUtil();
+        this.dbconnection = new DBConnection();
     }
 
     /**

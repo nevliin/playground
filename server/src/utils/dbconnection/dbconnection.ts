@@ -1,5 +1,6 @@
 import * as mysql from "mysql";
 import {Pool} from "mysql";
+import {createConnection, QueryError, RowDataPacket} from 'mysql';
 import {IServerConfig} from "../../config/server-config.model";
 
 const config: IServerConfig = require('../../config/config.json');
@@ -18,12 +19,12 @@ export class DBConnection {
         });
     }
 
-    async query(query: string): Promise<any> {
-        this.pool.query(query, (error, results) => {
-            if(error) {
-                throw error;
+    async query(query: string): Promise<RowDataPacket[]> {
+        this.pool.query(query, (err: QueryError, rows: RowDataPacket[]) => {
+            if(err) {
+                throw err;
             }
-            return results;
+            return rows;
         });
     }
 

@@ -7,18 +7,22 @@ const logger = require("morgan");
 const path = require("path");
 const errorHandler = require("errorhandler");
 const methodOverride = require("method-override");
-const index_1 = require("./routes/index");
+const routes_1 = require("./routes/routes");
+const logging_util_1 = require("./utils/logging/logging.util");
+const dbconnection_1 = require("./utils/dbconnection/dbconnection");
 class Server {
     static bootstrap() {
         return new Server();
     }
     constructor() {
         this.app = express();
+        this.singletons();
         this.config();
         this.routes();
-        this.api();
     }
-    api() {
+    singletons() {
+        this.loggingUtil = new logging_util_1.LoggingUtil();
+        this.dbconnection = new dbconnection_1.DBConnection();
     }
     config() {
         this.app.use(express.static(path.join(__dirname, "public")));
@@ -40,7 +44,8 @@ class Server {
     routes() {
         let router;
         router = express.Router();
-        index_1.IndexRoute.create(router);
+        this.router = new routes_1.Routes();
+        this.router.create(router);
         this.app.use(router);
     }
 }

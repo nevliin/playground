@@ -1,12 +1,5 @@
-import {Dependable} from "../../core/init-dependency-interface";
-import {injectable} from "../../core/dependencies";
 
-@injectable('logging')
-export class LoggingUtil implements Dependable {
-
-    initDependency(): void {
-        console.log('I was initialized!');
-    }
+export class LoggingUtil {
 
     getLogger(module: string): Logger {
         return new Logger(module);
@@ -50,7 +43,6 @@ export class Logger {
 
     private createMessage(message: Error | string, method?: string): string {
         return `[${(new Date()).toISOString()}] [${this.module}${(!!method) ? ':' + method : ''}] ${(message instanceof Error) ? message.name + ': ' + message.message : message}`;
-
     }
 
 
