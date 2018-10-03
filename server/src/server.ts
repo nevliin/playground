@@ -7,7 +7,8 @@ import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import {Routes} from "./routes/routes";
 import {LoggingUtil} from "./utils/logging/logging.util";
-import {DBConnection} from "./utils/dbconnection/dbconnection";
+import {DbUtil} from "./utils/dbconnection/db.util";
+import {Singletons} from "./core/singletons";
 
 
 /**
@@ -20,7 +21,7 @@ export class Server {
     public app: express.Application;
 
     private loggingUtil: LoggingUtil;
-    private dbconnection: DBConnection;
+    private dbconnection: DbUtil;
 
     /**
      * Bootstrap the application.
@@ -31,6 +32,7 @@ export class Server {
      * @return {ng.auto.IInjectorService} Returns the newly created injector for this app.
      */
     public static bootstrap(): Server {
+        Singletons.init();
         return new Server();
     }
 
@@ -56,7 +58,7 @@ export class Server {
 
     public singletons()  {
         this.loggingUtil = new LoggingUtil();
-        this.dbconnection = new DBConnection();
+        this.dbconnection = new DbUtil();
     }
 
     /**
