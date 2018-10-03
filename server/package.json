@@ -30,6 +30,7 @@
     "@types/method-override": "0.0.31",
     "@types/morgan": "^1.7.35",
     "@types/mysql": "github:types/mysql",
+    "@types/jsonwebtoken": "^7.2.8",
     "grunt": "^1.0.3",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-watch": "^1.1.0",
