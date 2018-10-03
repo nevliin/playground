@@ -1,7 +1,7 @@
 import * as mysql from "mysql";
-import {Pool} from "mysql";
+import {OkPacket, Pool} from "mysql";
 import {createConnection, QueryError, RowDataPacket} from 'mysql';
-import {IServerConfig} from "../../config/server-config.model";
+import {IDBConfig, IServerConfig} from "../../config/server-config.model";
 
 const config: IServerConfig = require('../../config/config.json');
 
@@ -9,26 +9,49 @@ export class DBConnection {
 
     private pool: Pool;
 
-    constructor() {
-        this.pool = mysql.createPool({
-            host: config.db.host,
-            user: config.db.user,
-            password: config.db.password,
-            database: config.db.database,
-            port: 3306
-        });
+    constructor(dbconfig?: IDBConfig) {
+        if(dbconfig) {
+            this.pool = mysql.createPool({
+                host: dbconfig.host,
+                user: dbconfig.user,
+                password: dbconfig.password,
+                database: dbconfig.database,
+                port: 3306
+            });
+        } else {
+            this.pool = mysql.createPool({
+                host: config.db.host,
+                user: config.db.user,
+                password: config.db.password,
+                database: config.db.database,
+                port: 3306
+            });
+        }
     }
 
     async query(query: string): Promise<RowDataPacket[]> {
-        this.pool.query(query, (err: QueryError, rows: RowDataPacket[]) => {
-            if(err) {
-                throw err;
-            }
-            return rows;
-        });
+        return new Promise<RowDataPacket[]>(((resolve, reject) => {
+            this.pool.query(query, (err: QueryError, rows: RowDataPacket[]) => {
+                if(err) {
+                    reject(err);
+                }
+                resolve(rows);
+            });
+        }));
     }
 
-    escapeString(str: string) {
+    async insert(query: string): Promise<OkPacket> {
+        return new Promise<OkPacket>(((resolve, reject) => {
+            this.pool.query(query, (err: QueryError, result: OkPacket) => {
+                if(err) {
+                    reject(err);
+                }
+                resolve(result);
+            });
+        }));
+    }
+
+    esc(str: string) {
         return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
             switch (char) {
                 case "\0":
