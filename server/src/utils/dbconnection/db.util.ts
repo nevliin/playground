@@ -1,11 +1,11 @@
 import * as mysql from "mysql";
 import {OkPacket, Pool} from "mysql";
 import {createConnection, QueryError, RowDataPacket} from 'mysql';
-import {IDBConfig, IServerConfig} from "../../config/server-config.model";
+import {IDBConfig, IServerConfig} from "../../assets/config/server-config.model";
 
-const config: IServerConfig = require('../../config/config.json');
+const config: IServerConfig = require('../../assets/config/server-config.json');
 
-export class DBConnection {
+export class DbUtil {
 
     private pool: Pool;
 
