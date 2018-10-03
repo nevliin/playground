@@ -1,13 +1,15 @@
 import {NextFunction, Request, Response, Router} from "express";
-import {Auth} from "../utils/auth/auth";
+import {AuthUtil} from "../utils/auth/auth.util";
 import {ISignUpModel} from "../utils/auth/signup.model";
+import {ErrorCodeUtil} from "../utils/error-code/error-code.util";
+import {ILoginModel} from "../utils/auth/login.model";
 
 const express = require('express');
 
 export const init = (): Router => {
     const authRouter = express.Router();
 
-    const auth: Auth = new Auth();
+    const auth: AuthUtil = new AuthUtil();
     authRouter.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId: number = await auth.signUp((<ISignUpModel>req.body));
@@ -15,19 +17,21 @@ export const init = (): Router => {
                 userId: userId
             })
         } catch (e) {
-            if(e.message.startsWith('ER_DUP_ENTRY')) {
-                res.status(500).send({
-                    id: 1,
-                    error: 'Username already exists'
-                });
-            } else {
-                res.status(500).send({
-                    id: 0,
-                    error: e.message
-                });
-            }
+            ErrorCodeUtil.resolveErrorOnRoute(e, res);
         }
     });
+
+    authRouter.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const token: string = await auth.login(<ILoginModel>req.body);
+            res.status(200).send({
+                token: token
+            })
+        } catch (e) {
+            ErrorCodeUtil.resolveErrorOnRoute(e, res);
+        }
+    });
+
 
     return authRouter;
 };

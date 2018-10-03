@@ -1,7 +1,7 @@
 import {Application, NextFunction, Request, Response, Router} from "express";
 import {LoggingUtil} from "../utils/logging/logging.util";
 import {TestService} from "../services/test.service";
-import {Auth} from "../utils/auth/auth";
+import {AuthUtil} from "../utils/auth/auth.util";
 import {authRouter} from "./auth-routes";
 
 const express = require('express');
@@ -12,7 +12,7 @@ export class Routes {
     public static init(app: Application) {
 
         const t: TestService = new TestService();
-        const auth: Auth = new Auth();
+        const auth: AuthUtil = new AuthUtil();
 
         app.use('/index', async (req: Request, res: Response, next: NextFunction) => {
             res.json(await t.getTest());
