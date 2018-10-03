@@ -6,7 +6,7 @@ import * as path from "path";
 import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import {Routes} from "./routes/routes";
-import {Logger, LoggingUtil} from "./utils/logging/logging.util";
+import {LoggingUtil} from "./utils/logging/logging.util";
 import {DBConnection} from "./utils/dbconnection/dbconnection";
 
 
@@ -18,7 +18,6 @@ import {DBConnection} from "./utils/dbconnection/dbconnection";
 export class Server {
 
     public app: express.Application;
-    public router: Routes;
 
     private loggingUtil: LoggingUtil;
     private dbconnection: DBConnection;
@@ -70,11 +69,6 @@ export class Server {
         //add static paths
         this.app.use(express.static(path.join(__dirname, "public")));
 
-        //configure pug
-        this.app.set("views", path.join(__dirname, "views"));
-        this.app.set("view engine", "pug");
-
-
         //use logger middlware
         this.app.use(logger("dev"));
 
@@ -109,13 +103,6 @@ export class Server {
      * @method api
      */
     public routes() {
-        let router: express.Router;
-        router = express.Router();
-
-        this.router = new Routes();
-        this.router.create(router);
-
-        //use router middleware
-        this.app.use(router);
+        Routes.init(this.app);
     }
 }
