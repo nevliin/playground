@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "name": "Undefined Error",
+    "text": "Undefined internal error"
+  },
+  {
+    "id": 1,
+    "name": "ER_DUP_ENTRY",
+    "text": "Duplicate database entry"
+  },
+  {
+    "id": 2,
+    "name": "NO_SUCH_USER",
+    "text": "Given user doesn't exist"
+  },
+  {
+    "id": 3,
+    "name": "INVALID_CREDENTIALS",
+    "text": "Given credentials are invalid"
+  }
+]
