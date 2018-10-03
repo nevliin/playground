@@ -7,15 +7,9 @@ module.exports = function(grunt) {
                 files: [
                     {
                         expand: true,
-                        cwd: "./public",
-                        src: ["**"],
-                        dest: "./dist/public"
-                    },
-                    {
-                        expand: true,
-                        cwd: "./views",
-                        src: ["**"],
-                        dest: "./dist/views"
+                        cwd: "src",
+                        src: ["assets/**/*.json"],
+                        dest: "./dist"
                     }
                 ]
             }
@@ -38,10 +32,6 @@ module.exports = function(grunt) {
             ts: {
                 files: ["src/**/*.ts"],
                 tasks: ["ts"]
-            },
-            views: {
-                files: ["views/**/*.pug"],
-                tasks: ["copy"]
             }
         }
     });
