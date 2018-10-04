@@ -1,0 +1,23 @@
+{
+  "route": "",
+  "children": [
+    {
+      "route": "auth",
+      "children": [
+        {
+          "route": "signup"
+        },
+        {
+          "route": "login"
+        }
+      ]
+    },
+    {
+      "route": "index",
+      "requiredPower": 50,
+      "permittedRoles": [
+        "dev"
+      ]
+    }
+  ]
+}
