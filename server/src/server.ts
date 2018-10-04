@@ -9,6 +9,7 @@ import {Routes} from "./routes/routes";
 import {LoggingUtil} from "./utils/logging/logging.util";
 import {DbUtil} from "./utils/dbconnection/db.util";
 import {Singletons} from "./core/singletons";
+import {AuthUtil} from "./utils/auth/auth.util";
 
 
 /**
@@ -67,7 +68,7 @@ export class Server {
      * @class Server
      * @method config
      */
-    public config() {
+    public async config() {
         //add static paths
         this.app.use(express.static(path.join(__dirname, "public")));
 
@@ -96,6 +97,8 @@ export class Server {
 
         //error handling
         this.app.use(errorHandler());
+
+        this.app.use(AuthUtil.routeGuard);
     }
 
     /**
