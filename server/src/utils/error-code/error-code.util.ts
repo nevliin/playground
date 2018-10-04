@@ -29,6 +29,28 @@ export class ErrorCodeUtil {
         throw new ErrorWithCode(0);
     }
 
+    static findErrorCode(identifier: number | string | Error): ErrorWithCode {
+        if (typeof identifier === 'string') {
+            const errorCode: ErrorCode = this.errors.find(value => value.name === identifier);
+            if (errorCode) {
+                return new ErrorWithCode(errorCode.id);
+            }
+        }
+        if (typeof identifier === 'number') {
+            const errorCode: ErrorCode = this.errors.find(value => value.id === identifier);
+            if (errorCode) {
+                return new ErrorWithCode(errorCode.id);
+            }
+        }
+        if (identifier instanceof Error) {
+            const errorCode: ErrorCode = this.errors.find(value => identifier.message.startsWith(value.name));
+            if (errorCode) {
+                return new ErrorWithCode(errorCode.id);
+            }
+        }
+        return new ErrorWithCode(0);
+    }
+
     static isErrorWithCode(e: Error): boolean {
         return e instanceof ErrorWithCode;
     }
