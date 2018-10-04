@@ -1,16 +1,20 @@
-import {DBConnection} from "../utils/dbconnection/dbconnection";
+import {DbUtil} from "../utils/dbconnection/db.util";
+import {RowDataPacket} from "mysql";
 
 export class TestService {
 
-    db: DBConnection;
+    db: DbUtil;
 
     constructor() {
-        this.db = new DBConnection();
+        this.db = new DbUtil();
     }
 
     async getTest(): Promise<string> {
-        const result: string = await this.db.query('SELECT username FROM auth_users LIMIT 1;');
-        return result;
+        const result: RowDataPacket[] = await this.db.query('SELECT username FROM auth_user LIMIT 1;');
+        if(result.length > 0) {
+            return result[0]['username'];
+        }
+        return 'None exist';
     }
 
 }
