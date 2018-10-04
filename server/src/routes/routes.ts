@@ -1,5 +1,4 @@
 import {Application, NextFunction, Request, Response, Router} from "express";
-import {LoggingUtil} from "../utils/logging/logging.util";
 import {TestService} from "../services/test.service";
 import {AuthUtil} from "../utils/auth/auth.util";
 import {authRouter} from "./auth-routes";

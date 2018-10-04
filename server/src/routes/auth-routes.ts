@@ -8,11 +8,10 @@ const express = require('express');
 
 export const init = (): Router => {
     const authRouter = express.Router();
-
-    const auth: AuthUtil = new AuthUtil();
     authRouter.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId: number = await auth.signUp((<ISignUpModel>req.body));
+
+            const userId: number = await AuthUtil.signUp((<ISignUpModel>req.body));
             res.status(200).send({
                 userId: userId
             })
@@ -23,7 +22,7 @@ export const init = (): Router => {
 
     authRouter.post('/login', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const token: string = await auth.login(<ILoginModel>req.body);
+            const token: string = await AuthUtil.login(<ILoginModel>req.body);
             res.status(200).send({
                 token: token
             })
