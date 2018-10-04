@@ -1,7 +1,11 @@
 
 export class LoggingUtil {
 
-    getLogger(module: string): Logger {
+    static init() {
+
+    }
+
+    static getLogger(module: string): Logger {
         return new Logger(module);
     }
 
