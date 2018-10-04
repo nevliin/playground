@@ -18,5 +18,10 @@
     "id": 3,
     "name": "INVALID_CREDENTIALS",
     "text": "Given credentials are invalid"
+  },
+  {
+    "id": 4,
+    "name": "ACC_DENIED",
+    "text": "Access denied for this route"
   }
 ]
