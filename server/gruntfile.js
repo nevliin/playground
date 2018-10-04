@@ -22,7 +22,7 @@ module.exports = function(grunt) {
                 }],
                 options: {
                     module: "commonjs",
-                    target: "es6",
+                    target: "es2017",
                     sourceMap: false,
                     rootDir: "src"
                 }
