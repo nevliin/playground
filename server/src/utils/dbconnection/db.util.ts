@@ -1,16 +1,23 @@
 import * as mysql from "mysql";
 import {OkPacket, Pool} from "mysql";
-import {createConnection, QueryError, RowDataPacket} from 'mysql';
+import {QueryError, RowDataPacket} from 'mysql';
 import {IDBConfig, IServerConfig} from "../../assets/config/server-config.model";
 
 const config: IServerConfig = require('../../assets/config/server-config.json');
 
+/**
+ * Utility for interacting with a MySQL database
+ */
 export class DbUtil {
 
     private pool: Pool;
 
+    /**
+     * Create the db pool; uses database credentials from configs if none are provided
+     * @param dbconfig
+     */
     constructor(dbconfig?: IDBConfig) {
-        if(dbconfig) {
+        if (dbconfig) {
             this.pool = mysql.createPool({
                 host: dbconfig.host,
                 user: dbconfig.user,
@@ -29,10 +36,14 @@ export class DbUtil {
         }
     }
 
+    /**
+     * Execute a query
+     * @param query
+     */
     async query(query: string): Promise<RowDataPacket[]> {
         return new Promise<RowDataPacket[]>(((resolve, reject) => {
             this.pool.query(query, (err: QueryError, rows: RowDataPacket[]) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(rows);
@@ -40,10 +51,14 @@ export class DbUtil {
         }));
     }
 
+    /**
+     * Execute an insertion
+     * @param query
+     */
     async insert(query: string): Promise<OkPacket> {
         return new Promise<OkPacket>(((resolve, reject) => {
             this.pool.query(query, (err: QueryError, result: OkPacket) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(result);
@@ -51,6 +66,10 @@ export class DbUtil {
         }));
     }
 
+    /**
+     * Escape a string to make it safe for the usage in a SQL query
+     * @param str
+     */
     esc(str: string) {
         return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
             switch (char) {
@@ -70,24 +89,9 @@ export class DbUtil {
                 case "'":
                 case "\\":
                 case "%":
-                    return "\\"+char; // prepends a backslash to backslash, percent,
-                                      // and double/single quotes
+                    return "\\" + char; // prepends a backslash to backslash, percent,
+                                        // and double/single quotes
             }
         });
     }
 }
-/* Usage example:
-
-var connection = require('../middleware/db');
-
-function get_active_sessions(){
-  connection.query('Select * from `sessions` where `Active`=1 and Expires>?;', [~~(new Date()/1000)], function(err, results){
-    if(err){
-      console.log(err);
-    }
-    else{
-      console.log(results);
-    }
-  });
-}
- */
