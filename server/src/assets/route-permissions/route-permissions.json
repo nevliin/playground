@@ -16,7 +16,7 @@
       "route": "index",
       "requiredPower": 50,
       "permittedRoles": [
-        "dev"
+        "user"
       ]
     }
   ]
