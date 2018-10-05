@@ -1,23 +1,13 @@
-INSERT INTO fin_interval_types(interval_type_id, name) VALUES
-  (0, "DAY"),
-  (1, "WEEK"),
-  (2, "MONTHLY"),
-  (3, "YEARLY");
-
-INSERT INTO fin_accounts_categories(category_id, name, active) VALUES
-  (1, "Active real accounts", 1),
-  (2, "Passive real accounts", 0),
-  (3, "Expense accounts", 1),
-  (4, "Income accounts", 0);
-
-INSERT INTO fin_accounts(account_id, name, note, parent_account, category_id) VALUES
-  (1200, "Forderungen aus Lieferungen und Leistungen", NULL, NULL, 1),
-  (1600, "Kasse", NULL, NULL, 1),
-  (1800, "Bank", NULL, NULL, 1),
-  (1801, "Girokonto BW-Bank", NULL, 1800, 1),
-  (1801, "Girokonto KSK Esslingen-Nürtingen", NULL, 1800, 1),
-  (6100, "Löhne & Gehälter", NULL, NULL, 4),
-  (6101, "Gehalt Tutorium HFT", NULL, 6100, 4);
-
-INSERT INTO fin_transactions(account, contra_account, amount, note) VALUES
-  (1801, 6101, 290, "Gehalt April");
+INSERT INTO auth_user(username, salted_hash) VALUES
+    (1, 'test', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO'),
+    (2, 'test2', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO'),
+    (3, 'test3', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO');
+INSERT INTO auth_token(user_id, token) VALUES(1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTUzODc3NDAyMSwiZXhwIjoxNTQxMzY2MDIxfQ.4AjJyZD7fJ9PzebjSt9WFxMxGt1dX78iiO44qMX3oUg');
+INSERT INTO auth_role(id, display_name, name, power) VALUES
+    (1, 'Root', 'root', 100),
+    (2, 'User', 'user', 10),
+    (3, 'Developer', 'dev', 50);
+INSERT INTO auth_user_role(user_id, role_id) VALUES
+    (1, 1),
+    (1, 3),
+    (2, 2);
