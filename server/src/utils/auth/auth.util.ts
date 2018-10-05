@@ -16,12 +16,18 @@ const jwt = require('jsonwebtoken');
 const config: IServerConfig = require('../../assets/config/server-config.json');
 const routePermissions: IRoutePermission = require('../../assets/route-permissions/route-permissions.json');
 
+/**
+ * Utility class for user authentication and route guarding
+ */
 export class AuthUtil {
 
     static db: DbUtil;
     static logger: Logger;
     static routePermissions: Map<string, RouteWithPermissionsModel> = new Map();
 
+    /**
+     * Init dependencies and route data
+     */
     static async init() {
         this.db = new DbUtil(config.auth);
         this.logger = LoggingUtil.getLogger('auth');
@@ -44,6 +50,10 @@ export class AuthUtil {
         }
     }
 
+    /**
+     * Log in the user with the provided credentials, return a JWT token
+     * @param loginModel
+     */
     public static async login(loginModel: ILoginModel): Promise<string> {
         try {
             const rows: RowDataPacket[] = await this.db.query(`SELECT id, salted_hash FROM auth_user WHERE username = '${loginModel.username}';`)
@@ -60,7 +70,7 @@ export class AuthUtil {
                     const result: OkPacket = await this.db.insert(`INSERT INTO auth_token(user_id, token) VALUES(${rows[0].id}, '${token}');`);
                     return token;
                 } else {
-                    ErrorCodeUtil.findErrorCodeAndThrow('INCORRECT_CREDENTIALS');
+                    ErrorCodeUtil.findErrorCodeAndThrow('INVALID_CREDENTIALS');
                 }
             } else {
                 ErrorCodeUtil.findErrorCodeAndThrow('NO_SUCH_USER');
@@ -70,27 +80,42 @@ export class AuthUtil {
         }
     }
 
+    /**
+     * Router middleware that verifies the validity of the JWT token in the header auth-token and checks if the user
+     * has access to the route; responds with an error if the token is invalid or the user has no access to this route
+     * @param req
+     * @param res
+     * @param next
+     */
     static routeGuard = async function (req: Request, res: Response, next: NextFunction) {
-        try {
-            console.log(req.path);
-            if(!AuthUtil.isRouteGuarded(req.path)) {
-                next();
-            }
-            if (req.get('auth-token')) {
-                const userId: number = await AuthUtil.verifyToken(req.get('auth-token'));
-                if(AuthUtil.verifyRoutePermission(req.path, userId)) {
-                    next();
+        if (!AuthUtil.isRouteGuarded(req.path)) {
+            next();
+        } else {
+            try {
+                if (req.get('auth-token')) {
+                    const userId: number = await AuthUtil.verifyToken(req.get('auth-token'));
+                    if (await AuthUtil.verifyRoutePermission(req.path, userId)) {
+                        next();
+                    } else {
+                        ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
+                    }
                 } else {
-                    ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
+                    if (await AuthUtil.verifyRoutePermission(req.path, null)) {
+                        next();
+                    } else {
+                        ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
+                    }
                 }
-            } else {
+            } catch (e) {
                 ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
             }
-        } catch (e) {
-            ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
         }
     };
 
+    /**
+     * Verifies the validity of a JWT token and returns the user id stored in it
+     * @param token
+     */
     public static async verifyToken(token: string): Promise<number> {
         try {
             const payload: IJWTPayloadModel = await jwt.verify(token, config.jwtsecret);
@@ -101,16 +126,25 @@ export class AuthUtil {
         }
     }
 
+    /**
+     * Check if a route is guarded
+     * @param route
+     */
     public static isRouteGuarded(route: string): boolean {
         return this.routePermissions.has(route);
 
     }
 
+    /**
+     * Verify that the given user has access to the given route
+     * @param routeName
+     * @param userId
+     */
     public static async verifyRoutePermission(routeName: string, userId: number): Promise<boolean> {
         try {
             let power: number = 0;
             let roles: number[] = [];
-            if (userId) {
+            if (userId && this.routePermissions.get(routeName).requiredPower > 0) {
                 const rows: RowDataPacket[] = await this.db.query(
                     `SELECT auth_user_role.role_id as id, auth_role.power as power
                     FROM auth_user_role 
@@ -118,27 +152,30 @@ export class AuthUtil {
                     JOIN auth_role ON auth_role.id = auth_user_role.role_id
                     WHERE auth_user.id = ${userId};`);
                 rows.forEach(row => {
-                    if(row.power > power) {
+                    if (row.power > power) {
                         power = row.power;
                     }
                 });
                 roles = rows.map(row => row.id);
-                const route: RouteWithPermissionsModel = this.routePermissions.get(routeName);
-                if(route.requiredPower <= power) {
-                    return true;
-                } else if(roles.some(role => route.permittedRoles.includes(role))) {
-                    return true;
-                }
-                return false;
             }
+            const route: RouteWithPermissionsModel = this.routePermissions.get(routeName);
+            if (route.requiredPower <= power) {
+                return true;
+            } else if (roles.some(role => route.permittedRoles.includes(role))) {
+                return true;
+            }
+            return false;
         } catch (e) {
-            if(ErrorCodeUtil.isErrorWithCode(e)) {
+            if (ErrorCodeUtil.isErrorWithCode(e)) {
                 throw e;
             }
             this.logger.error(e, 'verifyPermissions');
         }
     }
 
+    /**
+     * Initialize the routePermissions map
+     */
     public static async initRoutePermissions() {
         let rows: RowDataPacket[] = [];
         try {
@@ -162,9 +199,16 @@ export class AuthUtil {
         }
     }
 
+    /**
+     * Recursive method for generating all guarded routes from the JSON configuration
+     * @param route
+     * @param parentPower
+     * @param parentRoute
+     * @param roleIds
+     */
     public static generateRoute(route: IRoutePermission, parentPower: number, parentRoute: string, roleIds: Map<string, number>) {
         const power: number = (route.requiredPower > parentPower) ? route.requiredPower : parentPower;
-        const absoluteRoute: string = parentRoute + '/' + route.route;
+        const absoluteRoute: string = (parentRoute === '/' ? '' : parentRoute) + '/' + route.route;
         this.routePermissions.set(
             absoluteRoute,
             new RouteWithPermissionsModel(power, (route.permittedRoles) ? route.permittedRoles
