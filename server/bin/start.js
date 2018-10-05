@@ -14,6 +14,7 @@ var httpServer = http.createServer(app);
 
 //listen on provided ports
 httpServer.listen(httpPort);
+console.log('Now listening on port ' + httpPort)
 
 //add error handler
 httpServer.on("error", onError);
