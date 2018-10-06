@@ -1,16 +1,19 @@
 import {Response} from "express";
 import {IErrorCode} from "../../assets/error-codes/error-codes.model";
+import {Logger, LoggingUtil} from "../logging/logging.util";
 
 /**
  * Utility for easily returning meaningful error codes to the client
  */
 export class ErrorCodeUtil {
     static errors: IErrorCode[] = [];
+    static logger: Logger;
 
     /**
      * Initialize singleton
      */
     static init() {
+        this.logger = LoggingUtil.getLogger('ErrorCodeUtil');
         this.errors = require('../../assets/error-codes/error-codes.json');
     }
 
@@ -85,6 +88,7 @@ export class ErrorCodeUtil {
         if(ErrorCodeUtil.isErrorWithCode(e)) {
             res.status(900).send(e);
         } else {
+            this.logger.error(e, 'resolveErrorOnRoute');
             res.status(500).send({
                 error: e.message
             });
