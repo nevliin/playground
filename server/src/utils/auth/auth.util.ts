@@ -5,10 +5,11 @@ import {Logger, LoggingUtil} from "../logging/logging.util";
 import {OkPacket, RowDataPacket} from "mysql";
 import {ErrorCodeUtil} from "../error-code/error-code.util";
 import {ILoginModel} from "./login.model";
-import {IJWTPayloadModel} from "./jwtpayload.model";
+import {IJWTPayloadModel} from "./jwt-payload.model";
 import {IRoutePermission} from "../../assets/route-permissions/route-permissions";
 import {RouteWithPermissionsModel} from "./route-with-permissions.model";
 import {NextFunction, Request, Response} from "express";
+import {IUpdatePasswordModel} from "./update-password.model";
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -57,8 +58,8 @@ export class AuthUtil {
     public static async login(loginModel: ILoginModel): Promise<string> {
         try {
             const rows: RowDataPacket[] = await this.db.query(`SELECT id, salted_hash FROM auth_user WHERE username = '${loginModel.username}';`)
-            if (!!rows[0].salted_hash && !!rows[0].id) {
-                if (bcrypt.compareSync(loginModel.password, rows[0].salted_hash)) {
+            if (rows[0] && rows[0].salted_hash && rows[0].id) {
+                if (loginModel.password && bcrypt.compareSync(loginModel.password, rows[0].salted_hash)) {
                     const token: string = jwt.sign({
                             userId: rows[0].id
                         },
@@ -77,6 +78,22 @@ export class AuthUtil {
             }
         } catch (e) {
             throw e;
+        }
+    }
+
+    public static async updatePassword(updatePasswordModel: IUpdatePasswordModel) {
+        const rows: RowDataPacket[] = await this.db.query(`SELECT id, salted_hash FROM auth_user WHERE username = '${updatePasswordModel.username}';`);
+        if (rows[0] && rows[0].salted_hash && rows[0].id) {
+            if (updatePasswordModel.oldPassword && bcrypt.compareSync(updatePasswordModel.oldPassword, rows[0].salted_hash)) {
+                const hash: string = await bcrypt.hash(updatePasswordModel.newPassword, 10);
+                await this.db.insert(`UPDATE auth_user SET salted_hash='${hash}' WHERE id = ${rows[0].id};`);
+                await this.db.insert(`UPDATE auth_token SET valid = 0 WHERE user_id = ${rows[0].id};`);
+                return rows[0].id;
+            } else {
+                ErrorCodeUtil.findErrorCodeAndThrow('INVALID_CREDENTIALS');
+            }
+        } else {
+            ErrorCodeUtil.findErrorCodeAndThrow('NO_SUCH_USER');
         }
     }
 
