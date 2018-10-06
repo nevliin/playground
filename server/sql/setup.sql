@@ -30,6 +30,7 @@ CREATE TABLE auth_token(
 	id INT PRIMARY KEY AUTO_INCREMENT,
 	user_id INT REFERENCES auth_users(id),
     token VARCHAR(255) NOT NULL,
+    valid INT NOT NULL DEFAULT 1,
     created_on TIMESTAMP DEFAULT NOW()
 );
 

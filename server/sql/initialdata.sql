@@ -1,4 +1,4 @@
-INSERT INTO auth_user(username, salted_hash) VALUES
+INSERT INTO auth_user(id, username, salted_hash) VALUES
     (1, 'test', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO'),
     (2, 'test2', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO'),
     (3, 'test3', '$2a$10$RXWQDx07CEN42z1/gIjflOU.NtaQ5sQkJbGCicy07laFTHsp5DgIO');
