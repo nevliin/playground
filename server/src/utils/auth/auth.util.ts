@@ -105,27 +105,25 @@ export class AuthUtil {
      * @param next
      */
     static routeGuard = async function (req: Request, res: Response, next: NextFunction) {
-        if (!AuthUtil.isRouteGuarded(req.path)) {
-            next();
-        } else {
-            try {
-                if (req.get('auth-token')) {
-                    const userId: number = await AuthUtil.verifyToken(req.get('auth-token'));
-                    if (await AuthUtil.verifyRoutePermission(req.path, userId)) {
-                        next();
-                    } else {
-                        ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
-                    }
+        try {
+            if (req.get('auth-token')) {
+                const userId: number = await AuthUtil.verifyToken(req.get('auth-token'));
+                const route: RouteWithPermissionsModel = AuthUtil.isRouteGuarded(req.path);
+                if (await AuthUtil.verifyRoutePermission(route, userId)) {
+                    next();
                 } else {
-                    if (await AuthUtil.verifyRoutePermission(req.path, null)) {
-                        next();
-                    } else {
-                        ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
-                    }
+                    ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
                 }
-            } catch (e) {
-                ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
+            } else {
+                const route: RouteWithPermissionsModel = AuthUtil.isRouteGuarded(req.path);
+                if (await AuthUtil.verifyRoutePermission(route, null)) {
+                    next();
+                } else {
+                    ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
+                }
             }
+        } catch (e) {
+            ErrorCodeUtil.resolveErrorOnRoute(ErrorCodeUtil.findErrorCode('ACC_DENIED'), res);
         }
     };
 
@@ -144,24 +142,40 @@ export class AuthUtil {
     }
 
     /**
-     * Check if a route is guarded
-     * @param route
+     * Find the route relevant for the provided route and return it; undefined if no route in the chain is guarded
+     * @param routeName
      */
-    public static isRouteGuarded(route: string): boolean {
-        return this.routePermissions.has(route);
-
+    public static isRouteGuarded(routeName: string): RouteWithPermissionsModel {
+        let route: RouteWithPermissionsModel;
+        if(this.routePermissions.has(routeName)) {
+            route = this.routePermissions.get(routeName);
+        } else {
+            const splitName: string[] = routeName.split('/');
+            splitName.splice(0, 1);
+            for(let i = 0; i < (splitName.length + 1); i++) {
+                splitName.splice(splitName.length-1, 1);
+                if(this.routePermissions.has('/' + splitName.join('/'))) {
+                    route = this.routePermissions.get('/' + splitName.join('/'));
+                    break;
+                }
+            }
+        }
+        return route;
     }
 
     /**
      * Verify that the given user has access to the given route
-     * @param routeName
+     * @param route
      * @param userId
      */
-    public static async verifyRoutePermission(routeName: string, userId: number): Promise<boolean> {
+    public static async verifyRoutePermission(route: RouteWithPermissionsModel, userId: number): Promise<boolean> {
+        if(!route) {
+            return true;
+        }
         try {
             let power: number = 0;
             let roles: number[] = [];
-            if (userId && this.routePermissions.get(routeName).requiredPower > 0) {
+            if (userId && route.requiredPower > 0) {
                 const rows: RowDataPacket[] = await this.db.query(
                     `SELECT auth_user_role.role_id as id, auth_role.power as power
                     FROM auth_user_role 
@@ -175,7 +189,6 @@ export class AuthUtil {
                 });
                 roles = rows.map(row => row.id);
             }
-            const route: RouteWithPermissionsModel = this.routePermissions.get(routeName);
             if (route.requiredPower <= power) {
                 return true;
             } else if (roles.some(role => route.permittedRoles.includes(role))) {
