@@ -90,7 +90,7 @@ export class ErrorCodeUtil {
         } else {
             this.logger.error(e, 'resolveErrorOnRoute');
             res.status(500).send({
-                error: e.message
+                error: this.findErrorCode(0).message
             });
         }
     }
