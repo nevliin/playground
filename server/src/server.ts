@@ -7,7 +7,7 @@ import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import {Routes} from "./routes/routes";
 import {LoggingUtil} from "./utils/logging/logging.util";
-import {DbUtil} from "./utils/dbconnection/db.util";
+import {DbUtil} from "./utils/db/db.util";
 import {Singletons} from "./core/singletons";
 import {AuthUtil} from "./utils/auth/auth.util";
 

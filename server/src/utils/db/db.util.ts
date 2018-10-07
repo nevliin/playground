@@ -55,7 +55,7 @@ export class DbUtil {
      * Execute an insertion
      * @param query
      */
-    async insert(query: string): Promise<OkPacket> {
+    async execute(query: string): Promise<OkPacket> {
         return new Promise<OkPacket>(((resolve, reject) => {
             this.pool.query(query, (err: QueryError, result: OkPacket) => {
                 if (err) {

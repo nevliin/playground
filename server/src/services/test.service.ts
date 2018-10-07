@@ -1,4 +1,4 @@
-import {DbUtil} from "../utils/dbconnection/db.util";
+import {DbUtil} from "../utils/db/db.util";
 import {RowDataPacket} from "mysql";
 
 export class TestService {

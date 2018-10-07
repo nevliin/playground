@@ -1,5 +1,5 @@
 import {IServerConfig} from "../../assets/config/server-config.model";
-import {DbUtil} from "../dbconnection/db.util";
+import {DbUtil} from "../db/db.util";
 import {ISignUpModel} from "./signup.model";
 import {Logger, LoggingUtil} from "../logging/logging.util";
 import {OkPacket, RowDataPacket} from "mysql";
@@ -43,7 +43,7 @@ export class AuthUtil {
         const hash: string = await bcrypt.hash(signUpModel.password, 10);
 
         try {
-            const result: OkPacket = await this.db.insert(`INSERT INTO auth_user(username, salted_hash) VALUES('${this.db.esc(signUpModel.username)}', '${hash}');`)
+            const result: OkPacket = await this.db.execute(`INSERT INTO auth_user(username, salted_hash) VALUES('${this.db.esc(signUpModel.username)}', '${hash}');`)
             return result.insertId;
         } catch (e) {
             ErrorCodeUtil.findErrorCodeAndThrow(e);
@@ -68,7 +68,7 @@ export class AuthUtil {
                             expiresIn: '30d'
                         }
                     );
-                    const result: OkPacket = await this.db.insert(`INSERT INTO auth_token(user_id, token) VALUES(${rows[0].id}, '${token}');`);
+                    const result: OkPacket = await this.db.execute(`INSERT INTO auth_token(user_id, token) VALUES(${rows[0].id}, '${token}');`);
                     return token;
                 } else {
                     ErrorCodeUtil.findErrorCodeAndThrow('INVALID_CREDENTIALS');
@@ -86,8 +86,8 @@ export class AuthUtil {
         if (rows[0] && rows[0].salted_hash && rows[0].id) {
             if (updatePasswordModel.oldPassword && bcrypt.compareSync(updatePasswordModel.oldPassword, rows[0].salted_hash)) {
                 const hash: string = await bcrypt.hash(updatePasswordModel.newPassword, 10);
-                await this.db.insert(`UPDATE auth_user SET salted_hash='${hash}' WHERE id = ${rows[0].id};`);
-                await this.db.insert(`UPDATE auth_token SET valid = 0 WHERE user_id = ${rows[0].id};`);
+                await this.db.execute(`UPDATE auth_user SET salted_hash='${hash}' WHERE id = ${rows[0].id};`);
+                await this.db.execute(`UPDATE auth_token SET valid = 0 WHERE user_id = ${rows[0].id};`);
                 return rows[0].id;
             } else {
                 ErrorCodeUtil.findErrorCodeAndThrow('INVALID_CREDENTIALS');
