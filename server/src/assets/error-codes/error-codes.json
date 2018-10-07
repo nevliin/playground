@@ -23,5 +23,15 @@
     "id": 4,
     "name": "ACC_DENIED",
     "text": "Access denied for this route"
+  },
+  {
+    "id": 5,
+    "name": "INVALID_DATA",
+    "text": "The provided data is invalid"
+  },
+  {
+    "id": 6,
+    "name": "NO_SUCH_OBJECT",
+    "text": "No object found for the provided ID."
   }
 ]
