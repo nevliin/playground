@@ -33,5 +33,10 @@
     "id": 6,
     "name": "NO_SUCH_OBJECT",
     "text": "No object found for the provided ID."
+  },
+  {
+    "id": 7,
+    "name": "UPDATE_FAILED",
+    "text": "Update of the object failed."
   }
 ]
