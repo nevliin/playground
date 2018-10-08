@@ -14,7 +14,10 @@ export class Routes {
 
         const t: TestService = new TestService();
         const auth: AuthUtil = new AuthUtil();
-        const testModelCRUD: CRUDConstructor<TestModel> = new CRUDConstructor<TestModel>(new TestModel(), 'fin_category');
+        const testModelCRUD: CRUDConstructor<TestModel> = new CRUDConstructor<TestModel>(new TestModel(), 'fin_category', {
+            softDelete: true,
+            autoIncrementId: true
+        });
 
         app.use('/index', async (req: Request, res: Response, next: NextFunction) => {
             res.json(await t.getTest());
