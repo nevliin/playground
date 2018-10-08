@@ -24,14 +24,18 @@ export class CRUDConstructor<T extends ICRUDModel, > {
     private fieldMappings: Map<string, DBField>;
     readonly dbTable: string;
     readonly autoIncrementId: boolean;
+    readonly softDelete: boolean;
 
-    constructor(model: T, dbTable: string, autoIncrementId?: boolean, dbconfig?: IDBConfig, fieldMappings?: Map<string, string>) {
+    constructor(model: T, dbTable: string, options?: CRUDOptions, dbconfig?: IDBConfig, fieldMappings?: Map<string, string>) {
         this.db = new DbUtil(dbconfig);
         this.logger = LoggingUtil.getLogger('CRUDConstructor');
         this.model = model;
         this.fieldMappings = this.completeFieldMappings(fieldMappings, model);
         this.dbTable = dbTable;
-        this.autoIncrementId = (!isNullOrUndefined(autoIncrementId)) ? autoIncrementId : true;
+        if(options) {
+            this.autoIncrementId = (!isNullOrUndefined(options.autoIncrementId)) ? options.autoIncrementId : true;
+            this.softDelete = options.softDelete;
+        }
     }
 
     private completeFieldMappings(inputMap: Map<string, string>, model: T): Map<string, DBField> {
@@ -98,7 +102,11 @@ export class CRUDConstructor<T extends ICRUDModel, > {
         const properties: string[] = Array.from(this.fieldMappings.keys());
         const fieldsArray: string[] = properties.map(property => this.fieldMappings.get(property).name);
         const fields: string = fieldsArray.join(', ');
-        const statement: string = `SELECT ${fields} FROM ${this.dbTable} WHERE ${this.fieldMappings.get('id').name} = ${id};`;
+        let statement: string = `SELECT ${fields} FROM ${this.dbTable} WHERE ${this.fieldMappings.get('id').name} = ${id}`;
+        if(this.softDelete) {
+            statement += ` AND valid = 1`;
+        }
+        statement += ';';
 
         const rows: RowDataPacket[] = await this.db.query(statement);
 
@@ -145,10 +153,23 @@ export class CRUDConstructor<T extends ICRUDModel, > {
             }
         });
         statement += ` WHERE ${this.fieldMappings.get('id').name} = ${data.id};`;
-        console.log(statement);
 
         const result: OkPacket = await this.db.execute(statement);
+        if(result.affectedRows != 1) {
+            ErrorCodeUtil.findErrorCodeAndThrow('UPDATED_FAILED');
+        }
         return data.id;
+    }
+
+    public async delete(id: number): Promise<number> {
+        let statement: string = '';
+        if(this.softDelete) {
+            statement = `UPDATE ${this.dbTable} SET valid = 0 WHERE ${this.fieldMappings.get('id').name} = ${id};`;
+        } else {
+            statement = `DELETE FROM ${this.dbTable} WHERE ${this.fieldMappings.get('id').name} = ${id};`;
+        }
+        await this.db.execute(statement);
+        return id;
     }
 
     /**
@@ -176,9 +197,19 @@ export class CRUDConstructor<T extends ICRUDModel, > {
                 ErrorCodeUtil.resolveErrorOnRoute(e, res);
             }
         });
-        router.post('/update', async (req: Request, res: Response, next: NextFunction) => {
+        router.put('/update', async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const id: number = await this.update(req.body);
+                res.status(200).send({
+                    id: id
+                });
+            } catch (e) {
+                ErrorCodeUtil.resolveErrorOnRoute(e, res);
+            }
+        });
+        router.delete('/delete/:id', async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const id: number = await this.delete(req.params.id);
                 res.status(200).send({
                     id: id
                 });
@@ -203,4 +234,9 @@ enum DBFieldType {
     BOOLEAN = 'BOOLEAN',
     NUMBER = 'NUMBER',
     TIMESTAMP = 'TIMESTAMP'
+}
+
+interface CRUDOptions {
+    autoIncrementId?: boolean;
+    softDelete?: boolean;
 }
